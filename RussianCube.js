@@ -4,20 +4,18 @@ function RussianCube() {
 	THREE.Mesh.call(this, this.oGeo, this.oMate) //this继承Mesh
 	this.init() // 初始化方块
 	this.drop() // 方块下降
+	this.castShape() // 投影
 }
 
 RussianCube.prototype = {
 	constructor: RussianCube,
-
 	oGeo: new THREE.Geometry(),
-
 	oMate: new THREE.MeshBasicMaterial(),
-
 	// 类型种类(三维空间不存在二维手性结构)
 	catagories: ["I", "Z", "L", "T", "X"],
-
 	// 投影
 	castShape: function(){
+		newoCan.remove(this.cast)
 		var newRussianCube = new THREE.Mesh(this.geometry,new THREE.MeshBasicMaterial({wireframe:true}))
 		this.init.call(newRussianCube,true,this.catagory)
 		newRussianCube.position.y = this.position.y-this.collisionCheck().bottomDistance+1
@@ -28,8 +26,42 @@ RussianCube.prototype = {
 			var position = this.children[index].position
 			el.position.set(position.x,position.y,position.z)
 		});
-		return this.cast = newRussianCube
+		this.cast = newRussianCube
+		newoCan.add(this.cast)
 	},
+	// 消层
+	destroy: function(){
+		this.moveCtrl = ()=>{}
+		var cubes = oCantainer.children,
+		floor = (function(){var arr = [];for (var i = 0;i < 40; i++) {arr.push([])}return arr})()
+		cubes.forEach((outterEl)=>{
+			outterEl.children.forEach((innerEl)=>{
+				floor.forEach( (floorArr,index)=>{
+					if(innerEl.getFixd()[1] == index-20){
+						floorArr.push(innerEl)
+					}
+				})
+			})
+		})
+
+		floor.forEach((floorArr,index)=>{
+			if(floorArr.length == 49){
+				window.a++
+				floorArr.forEach((cube)=>{
+					cube.parent.remove(cube)
+				})
+				floor.forEach((floorArr,innerIndex)=>{
+					if(innerIndex>index){
+						floorArr.forEach((cube)=>{
+							cube.position.y -= 1
+						})
+					}
+				})
+				// 可在此处更新分数
+			}
+		})
+	},
+	// 下落与加速下落
 	drop: function( accelerate ){
 		if(!accelerate){
 			// 正常下落
@@ -38,6 +70,7 @@ RussianCube.prototype = {
 					this.position.y -= 1
 				} else {
 					this.moving = false
+					this.destroy()
 					newoCan.remove(this.cast)
 					clearInterval(this.timer)
 				}
@@ -50,13 +83,13 @@ RussianCube.prototype = {
 					this.position.y -= 1
 				} else {
 					this.moving = false
+					this.destroy()
 					newoCan.remove(this.cast)
 					clearInterval(this.timer)
 				}
 			}, 5)
 		}
 	},
-
 	// 碰撞检测
 	collisionCheck: function() {
 		var arr = {
@@ -76,24 +109,21 @@ RussianCube.prototype = {
 			movingCube.forEach( function(el, index) {
 				arr.bottomDistance[i]=[]
 				el.getFixd()[1] === -20 && (arr.bottom = true)
-				el.getFixd()[2] === 5 && (arr.far = true)
-				el.getFixd()[2] === -5 && (arr.near = true)
-				el.getFixd()[0] === -5 && (arr.left = true)
-				el.getFixd()[0] === 5 && (arr.right = true)
-
+				el.getFixd()[2] === 3 && (arr.far = true)
+				el.getFixd()[2] === -3 && (arr.near = true)
+				el.getFixd()[0] === -3 && (arr.left = true)
+				el.getFixd()[0] === 3 && (arr.right = true)
 				arr.bottomDistance[i]=el.getFixd()[1]+19
 				// 变形后伸出了墙外则判定此处不可变形
-				if (el.getFixd()[1] < -20 || el.getFixd()[2] > 5 ||
-					el.getFixd()[2] < -5 || el.getFixd()[0] < -5 ||
-					el.getFixd()[0] > 5
+				if (el.getFixd()[1] < -20 || el.getFixd()[2] > 3 ||
+					el.getFixd()[2] < -3 || el.getFixd()[0] < -3 ||
+					el.getFixd()[0] > 3
 				) {
 					arr.canTransform = false
 				}
 			});
 			arr.bottomDistance=arr.bottomDistance.sort((a,b)=>a-b)[0]
-			console.log(arr.bottomDistance)
 			return arr
-
 		} else {
 			movingCube.forEach( (movingEl,index)=> {
 				arr.bottomDistance[index]=[]
@@ -110,18 +140,18 @@ RussianCube.prototype = {
 					}
 
 					(!compare(0)&&!compare(2)&&compare(1)===1||movingEl.getFixd()[1]===-20)&&(arr.bottom = true);
-					(!compare(0)&&!compare(1)&&compare(2)===-1||movingEl.getFixd()[2]===5)&&(arr.far = true);
-					(!compare(0)&&!compare(1)&&compare(2)===1||movingEl.getFixd()[2]===-5)&&(arr.near = true);
-					(!compare(2)&&!compare(1)&&compare(0)===1||movingEl.getFixd()[0]===-5)&&(arr.left = true);
-					(!compare(2)&&!compare(1)&&compare(0)===-1||movingEl.getFixd()[0]===5)&&(arr.right = true);
+					(!compare(0)&&!compare(1)&&compare(2)===-1||movingEl.getFixd()[2]===3)&&(arr.far = true);
+					(!compare(0)&&!compare(1)&&compare(2)===1||movingEl.getFixd()[2]===-3)&&(arr.near = true);
+					(!compare(2)&&!compare(1)&&compare(0)===1||movingEl.getFixd()[0]===-3)&&(arr.left = true);
+					(!compare(2)&&!compare(1)&&compare(0)===-1||movingEl.getFixd()[0]===3)&&(arr.right = true);
 					
 					(	// 变形后与其他方块重叠或变形后伸出了墙外则判定此处不可变形
 						!compare(0)&&!compare(1)&&!compare(2)||
 						movingEl.getFixd()[1] < -20 || 
-						movingEl.getFixd()[2] > 5   ||
-						movingEl.getFixd()[2] < -5  ||
-						movingEl.getFixd()[0] < -5  ||
-						movingEl.getFixd()[0] > 5   
+						movingEl.getFixd()[2] > 3   ||
+						movingEl.getFixd()[2] < -3  ||
+						movingEl.getFixd()[0] < -3  ||
+						movingEl.getFixd()[0] > 3   
 					) && (arr.canTransform = false)
 				});
 					if(!arr.bottomDistance[index].length){
@@ -133,11 +163,10 @@ RussianCube.prototype = {
 			var temp = arr.bottomDistance
 			// 取俄罗斯方块距落定点的距离
 			arr.bottomDistance=arr.bottomDistance.sort((a,b)=>a-b)[0]
-			console.log(arr.bottomDistance)
+			// console.log(arr.bottomDistance)
 		}
 		return arr
 	},
-
 	// 判断类型，添加小方块
 	init: function(isclone, catagory) {
 		if(!isclone){
@@ -238,16 +267,12 @@ RussianCube.prototype = {
 					cube.position.z = 0
 				}
 			}
-			this.add(cube)
-			this.position.set(0, 20, 0)
-
+			this.add(cube) // 添加小方块到内部
 		}
-
+		this.position.set(0, 20, 0) // 将俄罗斯方块放到容器顶部
 	},
-
 	// 位移/变形/加速
 	moveCtrl: function(e) {
-		newoCan.remove(this.cast)
 		
 		// 位移:更新坐标
 		if (e.key == "a") {
@@ -314,13 +339,12 @@ RussianCube.prototype = {
 				});
 			}
 		} else if(e.key == "Enter"){
-			console.log(e)
+			// console.log(e)
 			this.drop(true)
 		}
-		if(!this.collisionCheck().bottom){
-			newoCan.add(this.castShape())
+		if(this.moving){
+			this.castShape()
 		}
 	},
-
 	__proto__: new THREE.Mesh()
 }

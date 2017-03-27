@@ -11,31 +11,33 @@
 	<script>
 		// 创建场景
 		var scene = new THREE.Scene()
-
+		// scene.setClearColor=0xffffff
 		// 创建相机
 		var camera = new THREE.PerspectiveCamera(45, window.innerWidth/window.innerHeight, 0.1, 1000)
-		camera.position.set(60,60,60)
-		camera.lookAt(new THREE.Vector3(0,0,0))
+		camera.position.set(40,45,40)
+		camera.lookAt(new THREE.Vector3(0,10,0))
 
 		// 创建容器
-		var oCantainerGeo = new THREE.CubeGeometry(11,41,11)
+		var oCantainerGeo = new THREE.CubeGeometry(7,41,7)
 		var oCantainerMat = new THREE.MeshLambertMaterial({color:0xeeeeee,transparent:true,opacity:0.05})
 		var oCantainer = new THREE.Mesh(oCantainerGeo,oCantainerMat)
 		oCantainer.position.set(5.5,20.5,5.5)
+		// 克隆容器，用来装castShape
 		var newoCan = oCantainer.clone();
 
 		// 创建俄罗斯方块
-		var cube = new RussianCube()
-		oCantainer.add(cube)
+		var russianCube = new RussianCube()
+		oCantainer.add(russianCube)
 		// 定时器轮询前一个俄罗斯方块是否落定,落定则加载下一个
 		setInterval(function(){
-			if(!cube.moving){
-				
-				cube = new RussianCube()
-				oCantainer.add(cube)
+			if(!russianCube.moving){
+				russianCube = new RussianCube()
+				oCantainer.add(russianCube)
 			}
 		},1000)
 
+		// 分数
+		var score = 0
 
 		// 转动容器
 		document.onmousedown = function(){
@@ -47,8 +49,9 @@
 				document.onmousemove = null
 			}
 		}
+
 		document.onkeydown = function(e){
-			cube.moveCtrl(e)
+			russianCube.moveCtrl(e)
 		}
 
 		// 创建光源

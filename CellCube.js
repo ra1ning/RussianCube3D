@@ -3,6 +3,11 @@
 			this.parent = parent
 			var oMaterial = this.getcubeMate(isCast)
 			var oGeo = this.cubeGeo
+			if(isCast){
+				var oGeo = this.castGeo
+			}else{
+				var oGeo = this.cubeGeo
+			}
 			THREE.Mesh.call(this,oGeo,oMaterial)
 		}
 
@@ -10,6 +15,7 @@
 			constructor: CellCube,
 			// 获取小方块几何体
 			cubeGeo: new THREE.CubeGeometry(1,1,1),
+			castGeo: new THREE.CubeGeometry(0.98,0.98,0.98),
 			// 判断小方块材质颜色，取得对应材质
 			getcubeMate: function(isCast){
 				var color,mate
