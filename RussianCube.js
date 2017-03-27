@@ -1,18 +1,9 @@
 // 俄罗斯方块类
 function RussianCube() {
-	this.moving = true
-	THREE.Mesh.call(this, this.oGeo, this.oMate)
-	this.init()
-
-	this.timer = setInterval(() => {
-		if (!this.collisionCheck().bottom) {
-			this.position.y -= 1
-		} else {
-			this.moving = false
-			newoCan.remove(this.cast)
-			clearInterval(this.timer)
-		}
-	}, 100)
+	this.moving = true // 方块运动状态
+	THREE.Mesh.call(this, this.oGeo, this.oMate) //this继承Mesh
+	this.init() // 初始化方块
+	this.drop() // 方块下降
 }
 
 RussianCube.prototype = {
@@ -38,6 +29,32 @@ RussianCube.prototype = {
 			el.position.set(position.x,position.y,position.z)
 		});
 		return this.cast = newRussianCube
+	},
+	drop: function( accelerate ){
+		if(!accelerate){
+			// 正常下落
+			this.timer = setInterval(() => {
+				if (!this.collisionCheck().bottom) {
+					this.position.y -= 1
+				} else {
+					this.moving = false
+					newoCan.remove(this.cast)
+					clearInterval(this.timer)
+				}
+			}, 1000)
+		}else{
+			// 加速下落
+			clearInterval(this.timer)
+			this.timer = setInterval(() => {
+				if (!this.collisionCheck().bottom) {
+					this.position.y -= 1
+				} else {
+					this.moving = false
+					newoCan.remove(this.cast)
+					clearInterval(this.timer)
+				}
+			}, 5)
+		}
 	},
 
 	// 碰撞检测
@@ -228,7 +245,7 @@ RussianCube.prototype = {
 
 	},
 
-	// 位移/变形
+	// 位移/变形/加速
 	moveCtrl: function(e) {
 		newoCan.remove(this.cast)
 		
@@ -296,6 +313,9 @@ RussianCube.prototype = {
 					el.position.y = temp
 				});
 			}
+		} else if(e.key == "Enter"){
+			console.log(e)
+			this.drop(true)
 		}
 		if(!this.collisionCheck().bottom){
 			newoCan.add(this.castShape())
