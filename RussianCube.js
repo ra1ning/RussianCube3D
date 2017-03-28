@@ -3,8 +3,8 @@ function RussianCube() {
 	this.moving = true // 方块运动状态
 	THREE.Mesh.call(this, this.oGeo, this.oMate) //this继承Mesh
 	this.init() // 初始化方块
-	this.drop() // 方块下降
-	this.castShape() // 投影
+	this.drop(false) // 方块下降
+	window.castShape&&this.castShape() // 投影
 }
 
 RussianCube.prototype = {
@@ -29,6 +29,11 @@ RussianCube.prototype = {
 		this.cast = newRussianCube
 		newoCan.add(this.cast)
 	},
+	pause: function(){
+		window.pause = !window.pause
+		console.log(window.pause)
+		this.drop(window.pause)
+	},
 	// 消层
 	destroy: function(){
 		this.moveCtrl = ()=>{}
@@ -37,7 +42,7 @@ RussianCube.prototype = {
 		cubes.forEach((outterEl)=>{
 			outterEl.children.forEach((innerEl)=>{
 				floor.forEach( (floorArr,index)=>{
-					if(innerEl.getFixd()[1] == index-20){
+					if(innerEl.getFixd()[1] == index-10){
 						floorArr.push(innerEl)
 					}
 				})
@@ -63,7 +68,8 @@ RussianCube.prototype = {
 	},
 	// 下落与加速下落
 	drop: function( accelerate ){
-		if(!accelerate){
+		clearInterval(this.timer)
+		if( accelerate===false ){
 			// 正常下落
 			this.timer = setInterval(() => {
 				if (!this.collisionCheck().bottom) {
@@ -75,9 +81,8 @@ RussianCube.prototype = {
 					clearInterval(this.timer)
 				}
 			}, 1000)
-		}else{
+		}else if( accelerate=="accelerate" ){
 			// 加速下落
-			clearInterval(this.timer)
 			this.timer = setInterval(() => {
 				if (!this.collisionCheck().bottom) {
 					this.position.y -= 1
@@ -106,16 +111,23 @@ RussianCube.prototype = {
 		}
 
 		if (staticCubes.length == 0) {
-			movingCube.forEach( function(el, index) {
+			movingCube.forEach( function(el) {
 				arr.bottomDistance[i]=[]
-				el.getFixd()[1] === -20 && (arr.bottom = true)
+				el.getFixd()[1] === -10 && (arr.bottom = true)
 				el.getFixd()[2] === 3 && (arr.far = true)
 				el.getFixd()[2] === -3 && (arr.near = true)
 				el.getFixd()[0] === -3 && (arr.left = true)
 				el.getFixd()[0] === 3 && (arr.right = true)
-				arr.bottomDistance[i]=el.getFixd()[1]+19
+				if(el.parent.catagory=="X"||el.parent.catagory=="T"){
+					arr.bottomDistance[i]=el.getFixd()[1]+10	
+				}else if (el.parent.catagory=="I") {
+					arr.bottomDistance[i]=el.getFixd()[1]+8
+				}else{
+					arr.bottomDistance[i]=el.getFixd()[1]+9
+				}
+				
 				// 变形后伸出了墙外则判定此处不可变形
-				if (el.getFixd()[1] < -20 || el.getFixd()[2] > 3 ||
+				if (el.getFixd()[1] < -10 || el.getFixd()[2] > 3 ||
 					el.getFixd()[2] < -3 || el.getFixd()[0] < -3 ||
 					el.getFixd()[0] > 3
 				) {
@@ -139,7 +151,7 @@ RussianCube.prototype = {
 						arr.bottomDistance[index].push(compare(1))	
 					}
 
-					(!compare(0)&&!compare(2)&&compare(1)===1||movingEl.getFixd()[1]===-20)&&(arr.bottom = true);
+					(!compare(0)&&!compare(2)&&compare(1)===1||movingEl.getFixd()[1]===-10)&&(arr.bottom = true);
 					(!compare(0)&&!compare(1)&&compare(2)===-1||movingEl.getFixd()[2]===3)&&(arr.far = true);
 					(!compare(0)&&!compare(1)&&compare(2)===1||movingEl.getFixd()[2]===-3)&&(arr.near = true);
 					(!compare(2)&&!compare(1)&&compare(0)===1||movingEl.getFixd()[0]===-3)&&(arr.left = true);
@@ -147,7 +159,7 @@ RussianCube.prototype = {
 					
 					(	// 变形后与其他方块重叠或变形后伸出了墙外则判定此处不可变形
 						!compare(0)&&!compare(1)&&!compare(2)||
-						movingEl.getFixd()[1] < -20 || 
+						movingEl.getFixd()[1] < -10 || 
 						movingEl.getFixd()[2] > 3   ||
 						movingEl.getFixd()[2] < -3  ||
 						movingEl.getFixd()[0] < -3  ||
@@ -155,7 +167,7 @@ RussianCube.prototype = {
 					) && (arr.canTransform = false)
 				});
 					if(!arr.bottomDistance[index].length){
-						arr.bottomDistance[index]=movingEl.getFixd()[1]+21
+						arr.bottomDistance[index]=movingEl.getFixd()[1]+11
 					}else{
 						arr.bottomDistance[index] = arr.bottomDistance[index].sort((a,b)=>a-b)[0]
 					}
@@ -269,7 +281,7 @@ RussianCube.prototype = {
 			}
 			this.add(cube) // 添加小方块到内部
 		}
-		this.position.set(0, 20, 0) // 将俄罗斯方块放到容器顶部
+		this.position.set(0, 10, 0) // 将俄罗斯方块放到容器顶部
 	},
 	// 位移/变形/加速
 	moveCtrl: function(e) {
@@ -340,10 +352,16 @@ RussianCube.prototype = {
 			}
 		} else if(e.key == "Enter"){
 			// console.log(e)
-			this.drop(true)
+			this.drop("accelerate")
+		}else if(e.key == "8"){
+			this.pause()
+		}else if(e.key == "7"){
+			window.castShape=!window.castShape
 		}
-		if(this.moving){
+		if(this.moving&&window.castShape){
 			this.castShape()
+		}else{
+			newoCan.remove(this.cast)
 		}
 	},
 	__proto__: new THREE.Mesh()

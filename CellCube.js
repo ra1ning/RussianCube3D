@@ -20,15 +20,15 @@
 			getcubeMate: function(isCast){
 				var color,mate
 				if(this.parent.catagory == "L"){
-					color = 0xff0000
+					color = 0xf47a55
 				}else if(this.parent.catagory == "X"){
-					color = 0x00ff00
+					color = 0xffd400
 				}else if(this.parent.catagory == "T"){
-					color = 0x0000ff
+					color = 0x78cdd1
 				}else if(this.parent.catagory == "I"){
-					color = 0xff00ff
+					color = 0xb69968
 				}else if(this.parent.catagory == "Z"){
-					color = 0xffff00
+					color = 0x563624
 				}
 				isCast?mate={}:mate={color: color}
 				var cubeMaterial = new THREE.MeshLambertMaterial(mate)
