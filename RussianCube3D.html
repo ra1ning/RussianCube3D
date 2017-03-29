@@ -3,26 +3,161 @@
 <head>
 	<meta charset="UTF-8">
 	<title>3D俄罗斯方块</title>
+	<style>
+		body{
+			margin:0;
+			height: 100%;
+			-webkit-user-select: none;
+		}
+		#canvas{
+			width: 100%;
+			height: 72%;
+		}
+		#direction div,#fn div,#transform div{
+			box-shadow: 10px 10px 5px #222;
+		}
+		#button_plane{
+			height: 28%;
+			background: #333;
+			display: flex;
+		}
+		#direction{
+			overflow: hidden;
+			position: relative;
+			width: 50%;
+		}
+		#direction div{
+			position: absolute;
+			background: #888;
+			border-radius: 20px;
+			transform:rotate(45deg)
+		}
+		#top{
+			bottom: 65%;
+		}
+		#bottom{
+			top:65%;
+		}
+
+		#left{
+			right: 65%
+		}
+		#right{
+			left: 65%
+		}
+
+
+		#right_plane{
+			width: 50%;
+			height: 100%;
+		}
+		#fn{
+			height: 30%;
+			display: flex;
+			align-items: center;
+			justify-content: space-around;
+		}
+		#fn div{
+			background-color: #888;
+			padding: 2%;
+			text-align: center;
+			color: #fff;
+			border-radius: 10%;
+		}
+		#transform{
+			height: 70%;
+			align-items: center;
+			justify-content: space-around;
+			display: flex;
+		}
+		#transform div{
+			text-align: center;
+			color: #fff;
+			border-radius: 10%;
+			background: #888;
+			margin: 5%;
+			width: 30%;
+			height: 30%;
+			align-items: center;
+			justify-content: space-around;
+			display: flex;
+		}
+
+	</style>
 	<script src="./three.js"></script>
-	<script src="./cellCube.js"></script>
+	<script src="./CellCube.js"></script>
 	<script src="./RussianCube.js"></script>
-	<meta name="viewport" content="width=device-width; initial-scale=1.0; maximum-scale=1.0; user-scalable=0;">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0,">
 </head>
 <body>
+	<div id="canvas"></div>
+	<div id="button_plane">
+		<div id="direction">
+			<div id="left"></div>
+			<div id="right"></div>
+			<div id="top"></div>
+			<div id="bottom"></div>
+		</div>
+		<div id="right_plane">
+			<div id="fn">
+				<div id="pause">暂停</div>
+				<div id="cast">投影</div>
+				<div id="acce">加速</div>
+			</div>
+			<div id="transform">
+				<div id="across">变形</div>
+				<div id="row">变形</div>
+				<div id="vertical">变形</div>
+			</div>
+		</div>
+		
+	</div>
 	<script>
+		var arr=  [document.querySelector("#left"),document.querySelector("#right"),document.querySelector("#top"),document.querySelector("#bottom"),document.querySelector("#pause"),document.querySelector("#cast"),document.querySelector("#across"),document.querySelector("#row"),document.querySelector("#vertical"),document.querySelector("#acce")],
+		keys = ["a","d","w","s","8","7","1","2","3","Enter"]
+		var oLeft=arr[0],oRight=arr[1],oTop=arr[2],oBottom=arr[3],oPause=arr[4],oCast=arr[5],oTrans1=arr[6],oTrans2=arr[7],oTrans3=arr[8]
+		document.body.style.height=window.innerHeight+"px"
+		function getStyle(obj,prop){
+			return parseInt(getComputedStyle(obj)[prop])
+		}
+
+		// 方向控制按钮响应式
+		var len =  getStyle(document.querySelector("#direction"),"width")<getStyle(document.querySelector("#direction"),"height")?getStyle(document.querySelector("#direction"),"width"):getStyle(document.querySelector("#direction"),"height")
+		oTop.style.width = oLeft.style.width = oBottom.style.width = oRight.style.width = oTop.style.height = oLeft.style.height = oBottom.style.height = oRight.style.height = len*0.26+"px"
+		oTop.style.left= oBottom.style.left = getStyle(document.querySelector("#direction"),"width")*0.5-0.13*len + "px"
+		oTop.style.bottom= oBottom.style.top = getStyle(document.querySelector("#direction"),"height")*0.5+0.13*len + "px"
+		oLeft.style.top= oRight.style.top = getStyle(document.querySelector("#direction"),"height")*0.5-0.13*len + "px"
+		oLeft.style.right= oRight.style.left = getStyle(document.querySelector("#direction"),"width")*0.5+0.13*len + "px"
+
+
 		// 创建场景
 		var scene = new THREE.Scene()
-		// scene.setClearColor=0xffffff
 		// 创建相机
-		var camera = new THREE.PerspectiveCamera(45, 1, 0.1, 1000)
-		camera.position.set(15,35,15)
-		camera.lookAt(new THREE.Vector3(0,10,0))
+		var camera = new THREE.PerspectiveCamera(45, window.innerWidth/(window.innerHeight*0.72), 0.1, 1000)
+		camera.position.set(25,15,15)
+		camera.lookAt(new THREE.Vector3(0,0,0))
+		// 创建底平面
+		var plane = new THREE.Mesh(new THREE.PlaneGeometry(7,7), new THREE.MeshBasicMaterial({color:0x888888}))
+		plane.rotation.x = -Math.PI*0.5
+		plane.position.set(0,-10.5,0)
 
 		// 创建容器
 		var oCantainerGeo = new THREE.CubeGeometry(7,21,7)
 		var oCantainerMat = new THREE.MeshLambertMaterial({color:0xeeeeee,transparent:true,opacity:0.05})
 		var oCantainer = new THREE.Mesh(oCantainerGeo,oCantainerMat)
-		oCantainer.position.set(5.5,20.5,5.5)
+		oCantainer.position.set(0,0,0)
+		// 容器中位面上位于四个侧面中心的四个点
+		var pA = new THREE.Mesh(new THREE.CubeGeometry(0,0,0),new THREE.MeshBasicMaterial())
+		pA.position.set(3,0,0)
+		var pB = new THREE.Mesh(new THREE.CubeGeometry(0,0,0),new THREE.MeshBasicMaterial())
+		pB.position.set(0,0,3)
+		var pC = new THREE.Mesh(new THREE.CubeGeometry(0,0,0),new THREE.MeshBasicMaterial())
+		pC.position.set(-3,0,0)
+		var pD = new THREE.Mesh(new THREE.CubeGeometry(0,0,0),new THREE.MeshBasicMaterial())
+		pD.position.set(0,0,-3)
+		window.p=pA
+		oCantainer.add(plane,pA,pB,pC,pD)
+
 		// 克隆容器，用来装castShape
 		var newoCan = oCantainer.clone();
 
@@ -42,9 +177,10 @@
 		var pause = false
 		var castShape = false
 
-		// 转动容器
+		// 鼠标转动容器
 		document.onmousedown = function(e){
-			var startX=0;
+			var radius = Math.pow(camera.position.x,2)+Math.pow(camera.position.y,2)+Math.pow(camera.position.z,2)
+			var startX= 0,startY= 0
 			document.onmousemove = function(e){
 				if(e.clientX-startX>0){
 					oCantainer.rotation.y += 0.08
@@ -53,7 +189,41 @@
 					oCantainer.rotation.y -= 0.08
 					newoCan.rotation.y -= 0.08
 				}
+				if(e.clientY-startY>0){
+					camera.position.y+=0.6
+					if(radius-Math.pow(camera.position.y,2)<1){
+						camera.position.y=Math.pow((radius-1),0.5)
+					}
+					camera.position.x=Math.pow((radius-Math.pow(camera.position.y,2))/2,0.5)
+					camera.position.z=Math.pow((radius-Math.pow(camera.position.y,2))/2,0.5)
+					camera.lookAt(new THREE.Vector3(0,0,0))
+				}else if(e.clientY-startY<0){
+					camera.position.y-=0.6
+					if(Math.pow(camera.position.y,2)<1){
+						camera.position.y=1
+					}
+					camera.position.x=Math.pow((radius-Math.pow(camera.position.y,2))/2,1/2)
+					camera.position.z=Math.pow((radius-Math.pow(camera.position.y,2))/2,1/2)
+					camera.lookAt(new THREE.Vector3(0,0,0))
+				}
+
+				pA.z = -Math.sin(oCantainer.rotation.y)
+				pA.x = Math.cos(oCantainer.rotation.y)
+				pB.z = -Math.sin(oCantainer.rotation.y-Math.PI*0.5)
+				pB.x = Math.cos(oCantainer.rotation.y-Math.PI*0.5)
+				pC.z = -Math.sin(oCantainer.rotation.y-Math.PI)
+				pC.x = Math.cos(oCantainer.rotation.y-Math.PI)
+				pD.z = -Math.sin(oCantainer.rotation.y-Math.PI*1.5)
+				pD.x = Math.cos(oCantainer.rotation.y-Math.PI*1.5)
+				var arr = [pA,pB,pC,pD]
+				arr.forEach(function(p){
+					if(p.x>=0&&p.z>=0){
+						window.p=p
+					}
+				})
+
 				startX = e.clientX
+				startY = e.clientY
 			}
 			document.onmouseup = function(){
 
@@ -61,10 +231,71 @@
 			}
 		}
 
-		document.onkeydown = function(e){
-			russianCube.moveCtrl(e)
-		}
+		// 触摸转动容器
+		document.addEventListener('touchstart',function(e){
+			var radius = Math.pow(camera.position.x,2)+Math.pow(camera.position.y,2)+Math.pow(camera.position.z,2)
+			var startX= 0,startY= 0;
+			function move(e){
+				if(e.touches[0].clientX-startX>0){
+					oCantainer.rotation.y += 0.08
+					newoCan.rotation.y += 0.08	
+				}else if(e.touches[0].clientX-startX<0){
+					oCantainer.rotation.y -= 0.08
+					newoCan.rotation.y -= 0.08
+				}
+				if(e.touches[0].clientY-startY>0){
+					camera.position.y+=0.6
+					if(radius-Math.pow(camera.position.y,2)<1){
+						camera.position.y=Math.pow((radius-1),0.5)
+					}
+					camera.position.x=Math.pow((radius-Math.pow(camera.position.y,2))/2,0.5)
+					camera.position.z=Math.pow((radius-Math.pow(camera.position.y,2))/2,0.5)
+					camera.lookAt(new THREE.Vector3(0,0,0))
+				}else if(e.touches[0].clientY-startY<0){
+					camera.position.y-=0.6
+					if(Math.pow(camera.position.y,2)<1){
+						camera.position.y=1
+					}
+					camera.position.x=Math.pow((radius-Math.pow(camera.position.y,2))/2,1/2)
+					camera.position.z=Math.pow((radius-Math.pow(camera.position.y,2))/2,1/2)
+					camera.lookAt(new THREE.Vector3(0,0,0))
+				}
+				pA.z = -Math.sin(oCantainer.rotation.y)
+				pA.x = Math.cos(oCantainer.rotation.y)
+				pB.z = -Math.sin(oCantainer.rotation.y-Math.PI*0.5)
+				pB.x = Math.cos(oCantainer.rotation.y-Math.PI*0.5)
+				pC.z = -Math.sin(oCantainer.rotation.y-Math.PI)
+				pC.x = Math.cos(oCantainer.rotation.y-Math.PI)
+				pD.z = -Math.sin(oCantainer.rotation.y-Math.PI*1.5)
+				pD.x = Math.cos(oCantainer.rotation.y-Math.PI*1.5)
+				var arr = [pA,pB,pC,pD]
+				arr.forEach(function(p){
+					if(p.x>=0&&p.z>=0){
+						window.p=p
+					}
+				})
+				startX = e.touches[0].clientX
+				startY = e.touches[0].clientY
+			}
+			document.addEventListener('touchmove',move)
+			document.addEventListener('touchend',function(e){
+				document.removeEventListener('touchmove',move)
+			})
+		})
 
+		// 网页按钮绑定事件key
+		arr.forEach(function(el,index){
+			el.onclick = function(e){
+				e.key=keys[index]
+				russianCube.moveCtrl(e,window.p)
+			}
+		})
+
+		// 键盘控制
+		document.onkeydown = function(e){
+			russianCube.moveCtrl(e,window.p)
+		}
+		
 		// 创建光源
 		var light = new THREE.DirectionalLight()
 		light.position.set(3,2,1)
@@ -74,17 +305,16 @@
 		scene.add(camera,oCantainer,newoCan,light)
 
 		// 创建渲染器
-		var renderer = new THREE.WebGLRenderer()
-		renderer.setSize(window.innerWidth, window.innerWidth)
+		var renderer = new THREE.WebGLRenderer({ antialias: true })
+		renderer.setSize(window.innerWidth, window.innerHeight*0.72)
 		renderer.setClearColor(0x33a3dc,0.5);  
 
 		// 渲染
-		document.body.append(renderer.domElement)
-
+		var canvas = document.querySelector("#canvas");
+		canvas.append(renderer.domElement)
 		function render(){
 				requestAnimationFrame(render)
 				renderer.render(scene,camera)
-
 		}
 		render()
 		

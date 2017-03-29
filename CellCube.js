@@ -30,7 +30,7 @@
 				}else if(this.parent.catagory == "Z"){
 					color = 0x563624
 				}
-				isCast?mate={}:mate={color: color}
+				isCast?mate={color:0x666666}:mate={color: color}
 				var cubeMaterial = new THREE.MeshLambertMaterial(mate)
 				return cubeMaterial
 			},
