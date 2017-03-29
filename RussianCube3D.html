@@ -82,7 +82,18 @@
 			justify-content: space-around;
 			display: flex;
 		}
-
+		#canvas{
+			position: relative;
+		}
+		#score{
+			position: absolute;
+			top: 0;
+			left: 0;
+			background: #33a3dc;
+			color: #fff;
+			font-size: 16px;
+			padding: 5px;
+		}
 	</style>
 	<script src="./three.js"></script>
 	<script src="./CellCube.js"></script>
@@ -90,7 +101,7 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0,">
 </head>
 <body>
-	<div id="canvas"></div>
+	<div id="canvas"><span id="score">得分:0</span></div>
 	<div id="button_plane">
 		<div id="direction">
 			<div id="left"></div>
@@ -206,7 +217,7 @@
 					camera.position.z=Math.pow((radius-Math.pow(camera.position.y,2))/2,1/2)
 					camera.lookAt(new THREE.Vector3(0,0,0))
 				}
-
+				// 视觉跟随
 				pA.z = -Math.sin(oCantainer.rotation.y)
 				pA.x = Math.cos(oCantainer.rotation.y)
 				pB.z = -Math.sin(oCantainer.rotation.y-Math.PI*0.5)
@@ -260,6 +271,8 @@
 					camera.position.z=Math.pow((radius-Math.pow(camera.position.y,2))/2,1/2)
 					camera.lookAt(new THREE.Vector3(0,0,0))
 				}
+
+				// 视觉跟随
 				pA.z = -Math.sin(oCantainer.rotation.y)
 				pA.x = Math.cos(oCantainer.rotation.y)
 				pB.z = -Math.sin(oCantainer.rotation.y-Math.PI*0.5)

@@ -52,7 +52,7 @@ RussianCube.prototype = {
 
 		floor.forEach(function(floorArr,index){
 			if(floorArr.length == 49){
-				window.a++
+				window.a+=49
 				floorArr.forEach(function(cube){
 					cube.parent.remove(cube)
 				})
@@ -64,6 +64,7 @@ RussianCube.prototype = {
 					}
 				})
 				// 可在此处更新分数
+				document.querySelector("#score").innerHTML="得分"+window.score
 			}
 		})
 	},
@@ -114,18 +115,17 @@ RussianCube.prototype = {
 
 		if (staticCubes.length == 0) {
 			movingCube.forEach( function(el) {
-				arr.bottomDistance[i]=[]
 				el.getFixd()[1] === -10 && (arr.bottom = true)
 				el.getFixd()[2] === 3 && (arr.far = true)
 				el.getFixd()[2] === -3 && (arr.near = true)
 				el.getFixd()[0] === -3 && (arr.left = true)
 				el.getFixd()[0] === 3 && (arr.right = true)
 				if(el.parent.catagory=="X"||el.parent.catagory=="T"){
-					arr.bottomDistance[i]=el.getFixd()[1]+10	
+					arr.bottomDistance=el.getFixd()[1]+10	
 				}else if (el.parent.catagory=="I") {
-					arr.bottomDistance[i]=el.getFixd()[1]+8
+					arr.bottomDistance=el.getFixd()[1]+8
 				}else{
-					arr.bottomDistance[i]=el.getFixd()[1]+9
+					arr.bottomDistance=el.getFixd()[1]+9
 				}
 				
 				// 变形后伸出了墙外则判定此处不可变形
@@ -136,7 +136,6 @@ RussianCube.prototype = {
 					arr.canTransform = false
 				}
 			});
-			arr.bottomDistance=arr.bottomDistance.sort(function(a,b){return a-b})[0]
 			return arr
 		} else {
 			movingCube.forEach( function(movingEl,index){
@@ -148,8 +147,8 @@ RussianCube.prototype = {
 						return movingEl.getFixd()[i] - staticEl.getFixd()[i]
 					}
 
-					// 存储小方块与其下方 static 小方块们之间的距离,排除过渡干扰
-					if(!compare(0)&&!compare(2) && movingEl.parent!==staticEl.parent){
+					// 存储小方块与其下方 static 小方块们之间的距离,排除过渡干扰,其上方小方块不计入内
+					if(!compare(0)&&!compare(2)&&compare(1)>0 && movingEl.parent!==staticEl.parent){
 						arr.bottomDistance[index].push(compare(1))	
 					}
 
@@ -177,7 +176,6 @@ RussianCube.prototype = {
 			var temp = arr.bottomDistance
 			// 取俄罗斯方块距落定点的距离
 			arr.bottomDistance=arr.bottomDistance.sort(function(a,b){return a-b})[0]
-			// console.log(arr.bottomDistance)
 		}
 		return arr
 	},
@@ -285,91 +283,8 @@ RussianCube.prototype = {
 		}
 		this.position.set(0, 10, 0) // 将俄罗斯方块放到容器顶部
 	},
-	// 位移/变形/加速
-	// moveCtrl: function(e) {
-		
-	// 	// 位移:更新坐标
-	// 	if (e.key == "a") {
-	// 		if (!this.collisionCheck().left) {
-	// 			this.position.x -= 1
-	// 		}
-	// 	} else if (e.key == "s") {
-	// 		if (!this.collisionCheck().far) {
-	// 			this.position.z += 1
-	// 		}
-	// 	} else if (e.key == "w") {
-	// 		if (!this.collisionCheck().near) {
-	// 			this.position.z -= 1
-	// 		}
-	// 	} else if (e.key == "d") {
-	// 		if (!this.collisionCheck().right) {
-	// 			this.position.x += 1
-	// 		}
-	// 	}
-	// 	// 变形:不能使用框架自带方法
-	// 	else if (e.key == "1") {
-	// 		// 先变形,判断是否有重叠
-	// 		this.children.forEach(function(el) {
-	// 			var temp = el.position.x
-	// 			el.position.x = el.position.y
-	// 			el.position.y = -temp
-	// 		});
-	// 		// 若变形后有重叠则恢复变形前的状态
-	// 		if (!this.collisionCheck().canTransform) {
-	// 			this.children.forEach(function(el) {
-	// 				var temp = el.position.x
-	// 				el.position.x = -el.position.y
-	// 				el.position.y = temp
-	// 			});
-	// 		}
-	// 	} else if (e.key == "2") {
-	// 		// 先变形,判断是否有重叠
-	// 		this.children.forEach(function(el) {
-	// 			var temp = el.position.x
-	// 			el.position.x = el.position.z
-	// 			el.position.z = -temp
-	// 		});
-	// 		// 若变形后有重叠则恢复变形前的状态
-	// 		if (!this.collisionCheck().canTransform) {
-	// 			this.children.forEach(function(el) {
-	// 				var temp = el.position.x
-	// 				el.position.x = -el.position.z
-	// 				el.position.z = temp
-	// 			});
-	// 		}
-	// 	} else if (e.key == "3") {
-	// 		// 先变形,判断是否有重叠
-	// 		this.children.forEach(function(el) {
-	// 			var temp = el.position.z
-	// 			el.position.z = el.position.y
-	// 			el.position.y = -temp
-	// 		});
-	// 		// 若变形后有重叠则恢复变形前的状态
-	// 		if (!this.collisionCheck().canTransform) {
-	// 			this.children.forEach(function(el) {
-	// 				var temp = el.position.z
-	// 				el.position.z = -el.position.y
-	// 				el.position.y = temp
-	// 			});
-	// 		}
-	// 	} else if(e.key == "Enter"){
-	// 		// console.log(e)
-	// 		this.drop("accelerate")
-	// 	}else if(e.key == "8"){
-	// 		this.pause()
-	// 	}else if(e.key == "7"){
-	// 		window.castShape=!window.castShape
-	// 	}
-	// 	if(this.moving&&window.castShape){
-	// 		this.castShape()
-	// 	}else{
-	// 		newoCan.remove(this.cast)
-	// 	}
-	// },
-
-
-
 	moveCtrl: function(e, p) {
+		// 内部条件为视觉跟随判断
 		if(p.position.x==3){
 			if (e.key == "d") {
 				if (!this.collisionCheck().near) {
