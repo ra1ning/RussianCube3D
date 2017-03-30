@@ -380,7 +380,7 @@ RussianCube.prototype = {
 				}
 			}
 		}
-		if (e.key == "z") {
+		if (e.key == "1") {
 			// 变形:不能使用框架自带方法
 			// 先变形,判断是否有重叠
 			this.children.forEach(function(el) {
@@ -396,7 +396,7 @@ RussianCube.prototype = {
 					el.position.y = temp
 				});
 			}
-		} else if (e.key == "x") {
+		} else if (e.key == "2") {
 			// 先变形,判断是否有重叠
 			this.children.forEach(function(el) {
 				var temp = el.position.x
@@ -411,7 +411,7 @@ RussianCube.prototype = {
 					el.position.z = temp
 				});
 			}
-		} else if (e.key == "c") {
+		} else if (e.key == "3") {
 			// 先变形,判断是否有重叠
 			this.children.forEach(function(el) {
 				var temp = el.position.z
